@@ -10,7 +10,7 @@ import { USER_API_END_POINT } from '@/utils/constant'
 import { toast } from 'sonner'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLoading, setUser } from '@/redux/authSlice'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 const Login = () => {
     const [input, setInput] = useState({
@@ -18,7 +18,10 @@ const Login = () => {
         password: "",
         role: "",
     });
-    const { loading,user } = useSelector(store => store.auth);
+
+    const [showPassword, setShowPassword] = useState(false);
+
+    const { loading, user } = useSelector(store => store.auth);
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -36,6 +39,7 @@ const Login = () => {
                 },
                 withCredentials: true,
             });
+
             if (res.data.success) {
                 dispatch(setUser(res.data.user));
                 navigate("/");
@@ -48,17 +52,25 @@ const Login = () => {
             dispatch(setLoading(false));
         }
     }
-    useEffect(()=>{
-        if(user){
+
+    useEffect(() => {
+        if (user) {
             navigate("/");
         }
-    },[])
+    }, []);
+
     return (
         <div>
             <Navbar />
+
             <div className='flex items-center justify-center max-w-7xl mx-auto'>
-                <form onSubmit={submitHandler} className='w-1/2 border border-gray-200 rounded-md p-4 my-10'>
+                <form
+                    onSubmit={submitHandler}
+                    className='w-1/2 border border-gray-200 rounded-md p-4 my-10'
+                >
                     <h1 className='font-bold text-xl mb-5'>Login</h1>
+
+                    {/* Email */}
                     <div className='my-2'>
                         <Label>Email</Label>
                         <Input
@@ -70,16 +82,35 @@ const Login = () => {
                         />
                     </div>
 
+                    {/* Password */}
                     <div className='my-2'>
                         <Label>Password</Label>
-                        <Input
-                            type="password"
-                            value={input.password}
-                            name="password"
-                            onChange={changeEventHandler}
-                            placeholder="patel@gmail.com"
-                        />
+
+                        <div className='relative'>
+                            <Input
+                                type={showPassword ? "text" : "password"}
+                                value={input.password}
+                                name="password"
+                                onChange={changeEventHandler}
+                                placeholder="Enter your password"
+                                className="pr-10"
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+                            >
+                                {showPassword ? (
+                                    <EyeOff size={18} />
+                                ) : (
+                                    <Eye size={18} />
+                                )}
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Role */}
                     <div className='flex items-center justify-between'>
                         <RadioGroup className="flex items-center gap-4 my-5">
                             <div className="flex items-center space-x-2">
@@ -87,29 +118,44 @@ const Login = () => {
                                     type="radio"
                                     name="role"
                                     value="student"
-                                    checked={input.role === 'student'}
+                                    checked={input.role === "student"}
                                     onChange={changeEventHandler}
                                     className="cursor-pointer"
                                 />
-                                <Label htmlFor="r1">Student</Label>
+                                <Label>Student</Label>
                             </div>
+
                             <div className="flex items-center space-x-2">
                                 <Input
                                     type="radio"
                                     name="role"
                                     value="recruiter"
-                                    checked={input.role === 'recruiter'}
+                                    checked={input.role === "recruiter"}
                                     onChange={changeEventHandler}
                                     className="cursor-pointer"
                                 />
-                                <Label htmlFor="r2">Recruiter</Label>
+                                <Label>Recruiter</Label>
                             </div>
                         </RadioGroup>
                     </div>
-                    {
-                        loading ? <Button className="w-full my-4"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> : <Button type="submit" className="w-full my-4">Login</Button>
-                    }
-                    <span className='text-sm'>Don't have an account? <Link to="/signup" className='text-blue-600'>Signup</Link></span>
+
+                    {loading ? (
+                        <Button className="w-full my-4">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Please wait
+                        </Button>
+                    ) : (
+                        <Button type="submit" className="w-full my-4">
+                            Login
+                        </Button>
+                    )}
+
+                    <span className='text-sm'>
+                        Don't have an account?{" "}
+                        <Link to="/signup" className='text-blue-600'>
+                            Signup
+                        </Link>
+                    </span>
                 </form>
             </div>
         </div>
