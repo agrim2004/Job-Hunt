@@ -11,17 +11,22 @@ import { toast } from 'sonner'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLoading } from '@/redux/authSlice'
 import { Loader2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 const Signup = () => {
 
     const [input, setInput] = useState({
-        fullname: "",
-        email: "",
-        phoneNumber: "",
-        password: "",
-        role: "",
-        file: ""
-    });
+    fullname: "",
+    email: "",
+    phoneNumber: "",
+    password: "",
+    confirmPassword: "",
+    role: "",
+    file: null,
+});
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const {loading,user} = useSelector(store=>store.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -34,13 +39,10 @@ const Signup = () => {
     }
     const submitHandler = async (e) => {
         e.preventDefault();
-    
-
-    if (!input.file) {
-        toast.error("Please upload a profile image");
-        return;
-    }
-
+    if (input.password !== input.confirmPassword) {
+    toast.error("Passwords do not match");
+    return;
+}
         const formData = new FormData();    //formdata object
         formData.append("fullname", input.fullname);
         formData.append("email", input.email);
@@ -111,15 +113,55 @@ const Signup = () => {
                             placeholder="8080808080"
                         />
                     </div>
-                    <div className='my-2'>
-                        <Label>Password</Label>
-                        <Input
-                            type="password"
-                            value={input.password}
-                            name="password"
-                            onChange={changeEventHandler}
-                            placeholder="patel@gmail.com"
-                        />
+                    <div className="my-2">
+                <Label>Password</Label>
+            
+                <div className="relative">
+                    <Input
+                        type={showPassword ? "text" : "password"}
+                        value={input.password}
+                        name="password"
+                        onChange={changeEventHandler}
+                        placeholder="Enter password"
+                        className="pr-10"
+                    />
+            
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                    </div>
+                        </div>
+                                        <div className="my-2">
+                        <Label>Confirm Password</Label>
+                    
+                        <div className="relative">
+                            <Input
+                                type={showConfirmPassword ? "text" : "password"}
+                                value={input.confirmPassword}
+                                name="confirmPassword"
+                                onChange={changeEventHandler}
+                                placeholder="Confirm password"
+                                className="pr-10"
+                            />
+                    
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowConfirmPassword(!showConfirmPassword)
+                                }
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                            >
+                                {showConfirmPassword ? (
+                                    <EyeOff size={18} />
+                                ) : (
+                                    <Eye size={18} />
+                                )}
+                            </button>
+                        </div>
                     </div>
                     <div className='flex items-center justify-between'>
                         <RadioGroup className="flex items-center gap-4 my-5">
@@ -153,7 +195,6 @@ const Signup = () => {
                                 type="file"
                                 onChange={changeFileHandler}
                                 className="cursor-pointer"
-                                required
                             />
                         </div>
                     </div>
