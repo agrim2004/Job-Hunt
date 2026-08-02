@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
-import { Avatar, AvatarImage } from "../ui/avatar";
+import { Avatar, AvatarFallback,AvatarImage } from "../ui/avatar";
 import { LogOut, Menu, User2, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -98,21 +98,29 @@ return (
                 ) : (
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Avatar className="cursor-pointer">
-                                <AvatarImage
-                                    src={user?.profile?.profilePhoto}
-                                />
-                            </Avatar>
-                        </PopoverTrigger>
+                        <Avatar className="cursor-pointer h-10 w-10 border-2 border-violet-500 shadow-md shadow-violet-200 transition-all duration-200 hover:scale-105 hover:border-violet-600">
+                            <AvatarImage
+                                src={user?.profile?.profilePhoto}
+                                alt={user?.fullname}
+                            />
+                            <AvatarFallback className="bg-violet-100 text-violet-700 font-semibold">
+                                {user?.fullname?.charAt(0)?.toUpperCase() || "U"}
+                            </AvatarFallback>
+                        </Avatar>
+                    </PopoverTrigger>
 
                         <PopoverContent className="w-80">
                             <div>
                                 <div className="flex gap-2">
-                                    <Avatar>
-                                        <AvatarImage
-                                            src={user?.profile?.profilePhoto}
-                                        />
-                                    </Avatar>
+                                    <Avatar className="h-12 w-12 border-2 border-violet-500">
+                                    <AvatarImage
+                                        src={user?.profile?.profilePhoto}
+                                        alt={user?.fullname}
+                                    />
+                                    <AvatarFallback className="bg-violet-100 text-violet-700 font-semibold">
+                                        {user?.fullname?.charAt(0)?.toUpperCase() || "U"}
+                                    </AvatarFallback>
+                                </Avatar>
 
                                     <div>
                                         <h4 className="font-medium">
