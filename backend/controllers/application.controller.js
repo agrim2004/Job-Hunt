@@ -1,10 +1,20 @@
 import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
+import { User } from "../models/user.model.js";
 
 export const applyJob = async (req, res) => {
     try {
         const userId = req.id;
         const jobId = req.params.id;
+        const user = await User.findById(userId);
+        
+         if (user?.role === "recruiter") {
+            return res.status(403).json({
+                message: "Recruiters cannot apply for jobs.",
+                success: false
+            });
+        }
+
         if (!jobId) {
             return res.status(400).json({
                 message: "Job id is required.",
