@@ -11,7 +11,8 @@ import { toast } from 'sonner'
 const JobDescription = () => {
     const { singleJob } = useSelector(store => store.job)
     const { user } = useSelector(store => store.auth)
-
+    const isRecruiter = user?.role === "recruiter";
+    
     const isIntiallyApplied =
         singleJob?.applications?.some(
             application => application.applicant === user?._id
@@ -144,6 +145,7 @@ const JobDescription = () => {
                 </div>
 
                 {/* Apply Button */}
+                {!isRecruiter && (
                 <Button
                     onClick={isApplied ? null : applyJobHandler}
                     disabled={isApplied}
@@ -155,6 +157,7 @@ const JobDescription = () => {
                 >
                     {isApplied ? 'Already Applied' : 'Apply Now'}
                 </Button>
+            )}
 
             </div>
 
