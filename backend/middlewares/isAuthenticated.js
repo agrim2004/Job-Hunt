@@ -1,4 +1,4 @@
-```javascript
+
 import jwt from "jsonwebtoken";
 
 const isAuthenticated = async (req, res, next) => {
@@ -60,4 +60,3 @@ const isAuthenticated = async (req, res, next) => {
 };
 
 export default isAuthenticated;
-```
