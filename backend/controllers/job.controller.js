@@ -37,54 +37,49 @@ export const postJob = async (req, res) => {
 export const getAllJobs = async (req, res) => {
     try {
         const keyword = req.query.keyword || "";
-        const query = {
-    $or: [
-        { title: { $regex: keyword, $options: "i" } },
-        { description: { $regex: keyword, $options: "i" } },
-    ]
-};
-        const jobs = await Job.find(query).populate({
-            path: "company"
-        }).sort({ createdAt: -1 });
-        if (!jobs) {
-            return res.status(404).json({
-                message: "Jobs not found.",
-                success: false
-            })
-        };
+
+        const jobs = await Job.aggregate([
+            {
+                $lookup: {
+                    from: "companies",
+                    localField: "company",
+                    foreignField: "_id",
+                    as: "company"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$company",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $match: {
+                    $or: [
+                        { title: { $regex: keyword, $options: "i" } },
+                        { description: { $regex: keyword, $options: "i" } },
+                        { "company.name": { $regex: keyword, $options: "i" } }
+                    ]
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ]);
+
         return res.status(200).json({
             jobs,
-            success: true
-        })
-    } catch (error) {
-        console.log(error);
-    }
-}
-// student
-export const getJobById = async (req, res) => {
-    try {
-        const jobId = req.params.id;
-
-        const job = await Job.findById(jobId)
-            .populate("company")
-            .populate("applications");
-
-        if (!job) {
-            return res.status(404).json({
-                message: "Jobs not found.",
-                success: false
-            });
-        }
-
-        return res.status(200).json({
-            job,
             success: true
         });
 
     } catch (error) {
-        console.log(error);
+        console.error("Error fetching jobs:", error);
+        return res.status(500).json({
+            message: "Failed to fetch jobs",
+            success: false
+        });
     }
-}
+};
 // admin kitne job create kra hai abhi tk
 export const getAdminJobs = async (req, res) => {
     try {
