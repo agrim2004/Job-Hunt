@@ -80,6 +80,36 @@ export const getAllJobs = async (req, res) => {
         });
     }
 };
+
+export const getJobById = async (req, res) => {
+    try {
+        const jobId = req.params.id;
+
+        const job = await Job.findById(jobId)
+            .populate("company")
+            .populate("applications");
+
+        if (!job) {
+            return res.status(404).json({
+                message: "Job not found.",
+                success: false
+            });
+        }
+
+        return res.status(200).json({
+            job,
+            success: true
+        });
+
+    } catch (error) {
+        console.error("Error fetching job:", error);
+
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
+    }
+};
 // admin kitne job create kra hai abhi tk
 export const getAdminJobs = async (req, res) => {
     try {
