@@ -1,11 +1,12 @@
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import Navbar from './shared/Navbar';
 import FilterCard from './FilterCard';
 import Job from './Job';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import useGetAllJobs from '@/hooks/useGetAllJobs';
+import { setSearchedQuery } from '@/redux/jobSlice';
 
 const salaryRanges = {
     '0-3 LPA': [0, 3],
@@ -17,6 +18,8 @@ const salaryRanges = {
 };
 
 const Jobs = () => {
+    const dispatch = useDispatch();
+
     useGetAllJobs();
 
     const {
@@ -26,17 +29,16 @@ const Jobs = () => {
         selectedRole,
         selectedSalary
     } = useSelector(store => store.job);
-    console.log("Jobs page received:", allJobs?.length);
-        console.log("Active filters:", {
-            searchedQuery,
-            selectedLocation,
-            selectedRole,
-            selectedSalary
-        });
+
+    // Clear stale search text when opening the Jobs page.
+    useEffect(() => {
+        dispatch(setSearchedQuery(''));
+    }, [dispatch]);
 
     const filterJobs = useMemo(() => {
         let jobs = Array.isArray(allJobs) ? [...allJobs] : [];
 
+        // Filter by search text.
         if (searchedQuery?.trim()) {
             const query = searchedQuery.trim().toLowerCase();
 
@@ -48,6 +50,7 @@ const Jobs = () => {
             );
         }
 
+        // Filter by location.
         if (selectedLocation) {
             jobs = jobs.filter(job =>
                 (job.location || '').toLowerCase().includes(
@@ -56,6 +59,7 @@ const Jobs = () => {
             );
         }
 
+        // Filter by job role.
         if (selectedRole) {
             jobs = jobs.filter(job =>
                 (job.title || '').toLowerCase().includes(
@@ -64,12 +68,18 @@ const Jobs = () => {
             );
         }
 
+        // Filter by salary.
         if (selectedSalary && salaryRanges[selectedSalary]) {
             const [min, max] = salaryRanges[selectedSalary];
 
             jobs = jobs.filter(job => {
                 const salary = Number(job.salary);
-                return Number.isFinite(salary) && salary >= min && salary < max;
+
+                return (
+                    Number.isFinite(salary) &&
+                    salary >= min &&
+                    salary < max
+                );
             });
         }
 
@@ -88,16 +98,20 @@ const Jobs = () => {
 
             <div className="max-w-7xl mx-auto mt-5 px-3">
                 <div className="flex flex-col md:flex-row gap-5">
+
+                    {/* Filters */}
                     <div className="w-full md:w-1/5">
                         <FilterCard />
                     </div>
 
+                    {/* Job cards */}
                     <div className="flex-1 h-[88vh] overflow-y-auto pb-5">
                         {filterJobs.length === 0 ? (
                             <div className="text-center py-10">
                                 <h2 className="text-lg font-semibold">
                                     No Jobs Available
                                 </h2>
+
                                 <p className="text-gray-500 mt-2">
                                     Try changing or clearing your filters.
                                 </p>
@@ -117,6 +131,7 @@ const Jobs = () => {
                             </div>
                         )}
                     </div>
+
                 </div>
             </div>
         </div>
