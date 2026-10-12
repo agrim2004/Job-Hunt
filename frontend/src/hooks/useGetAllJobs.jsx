@@ -17,21 +17,20 @@ const useGetAllJobs = () => {
                     `${JOB_API_END_POINT}/get`,
                     {
                         withCredentials: true,
-                        headers: {
-                            'Cache-Control': 'no-cache'
-                        },
-                        params: {
-                            _t: Date.now()
-                        }
+                        params: { _t: Date.now() }
                     }
                 );
 
+                console.log('API success:', res.data.success);
+                console.log('API jobs count:', res.data.jobs?.length);
+
                 if (!cancelled && res.data.success) {
-                    dispatch(setAllJobs(
-                        Array.isArray(res.data.jobs)
-                            ? res.data.jobs
-                            : []
-                    ));
+                    const jobs = Array.isArray(res.data.jobs)
+                        ? res.data.jobs
+                        : [];
+
+                    dispatch(setAllJobs(jobs));
+                    console.log('Jobs dispatched to Redux:', jobs.length);
                 }
             } catch (error) {
                 console.error(
