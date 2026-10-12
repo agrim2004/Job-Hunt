@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Search } from "lucide-react";
@@ -12,8 +11,15 @@ const HeroSection = () => {
     const navigate = useNavigate();
 
     const searchJobHandler = (searchText = query) => {
-        dispatch(setSearchedQuery(searchText.trim()));
-        navigate("/jobs");
+        const searchTerm = searchText.trim();
+
+        dispatch(setSearchedQuery(searchTerm));
+
+        if (searchTerm) {
+            navigate(`/jobs?search=${encodeURIComponent(searchTerm)}`);
+        } else {
+            navigate("/jobs");
+        }
     };
 
     const popularSearches = [
@@ -27,15 +33,12 @@ const HeroSection = () => {
     return (
         <section className="bg-gradient-to-br from-violet-50 via-white to-purple-50">
             <div className="max-w-7xl mx-auto px-4 pt-16 pb-6">
-
-                {/* Badge */}
                 <div className="flex justify-center">
                     <span className="px-5 py-2 rounded-full bg-white border shadow-sm text-[#F83002] font-medium">
                         🚀 India's Smart Job Portal
                     </span>
                 </div>
 
-                {/* Heading */}
                 <div className="text-center mt-8">
                     <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-tight">
                         Search, Apply &
@@ -53,7 +56,6 @@ const HeroSection = () => {
                     </p>
                 </div>
 
-                {/* Search Bar */}
                 <div className="flex w-full md:w-[65%] mx-auto mt-10 bg-white border rounded-full shadow-xl overflow-hidden focus-within:shadow-2xl transition-all duration-300">
                     <input
                         type="text"
@@ -69,6 +71,7 @@ const HeroSection = () => {
                     />
 
                     <Button
+                        type="button"
                         onClick={() => searchJobHandler()}
                         className="rounded-none rounded-r-full bg-[#6A38C2] hover:bg-[#582db0] px-8"
                     >
@@ -76,12 +79,15 @@ const HeroSection = () => {
                     </Button>
                 </div>
 
-                {/* Popular Searches */}
                 <div className="flex flex-wrap justify-center gap-3 mt-6">
                     {popularSearches.map((item) => (
                         <button
+                            type="button"
                             key={item}
-                            onClick={() => searchJobHandler(item)}
+                            onClick={() => {
+                                setQuery(item);
+                                searchJobHandler(item);
+                            }}
                             className="px-4 py-2 bg-white border rounded-full text-sm hover:bg-[#6A38C2] hover:text-white hover:scale-105 transition-all duration-300"
                         >
                             {item}
@@ -89,7 +95,6 @@ const HeroSection = () => {
                     ))}
                 </div>
 
-                {/* Features */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
                     <div className="bg-white rounded-2xl border p-6 text-center hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
                         <div className="text-4xl mb-3">⚡</div>
@@ -115,7 +120,6 @@ const HeroSection = () => {
                         </p>
                     </div>
                 </div>
-
             </div>
         </section>
     );

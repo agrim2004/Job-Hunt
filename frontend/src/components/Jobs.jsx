@@ -1,141 +1,203 @@
+import { useEffect, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 
-import { useEffect, useMemo } from 'react';
-import Navbar from './shared/Navbar';
-import FilterCard from './FilterCard';
-import Job from './Job';
-import { useDispatch, useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
-import useGetAllJobs from '@/hooks/useGetAllJobs';
-import { setSearchedQuery } from '@/redux/jobSlice';
+import Navbar from "./shared/Navbar";
+import FilterCard from "./FilterCard";
+import Job from "./Job";
+import useGetAllJobs from "@/hooks/useGetAllJobs";
 
-const salaryRanges = {
-    '0-3 LPA': [0, 3],
-    '3-5 LPA': [3, 5],
-    '5-8 LPA': [5, 8],
-    '8-12 LPA': [8, 12],
-    '12-20 LPA': [12, 20],
-    '20+ LPA': [20, Infinity]
-};
+import {
+  setSearchedQuery,
+  setSelectedLocation,
+  setSelectedRole,
+  setSelectedSalary,
+} from "@/redux/jobSlice";
 
 const Jobs = () => {
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-    useGetAllJobs();
+  useGetAllJobs();
 
-    const {
-        allJobs = [],
-        searchedQuery,
-        selectedLocation,
-        selectedRole,
-        selectedSalary
-    } = useSelector(store => store.job);
+  const {
+    allJobs = [],
+    selectedLocation = "",
+    selectedRole = "",
+    selectedSalary = "",
+  } = useSelector((store) => store.job);
 
-    // Clear stale search text when opening the Jobs page.
-    useEffect(() => {
-        dispatch(setSearchedQuery(''));
-    }, [dispatch]);
+  const searchQuery = searchParams.get("search") || "";
 
-    const filterJobs = useMemo(() => {
-        let jobs = Array.isArray(allJobs) ? [...allJobs] : [];
+  // Reset saved search and filters only when the browser is refreshed.
+  useEffect(() => {
+    const navigation = performance.getEntriesByType("navigation")[0];
 
-        // Filter by search text.
-        if (searchedQuery?.trim()) {
-            const query = searchedQuery.trim().toLowerCase();
+    if (navigation?.type === "reload") {
+      dispatch(setSearchedQuery(""));
+      dispatch(setSelectedLocation(""));
+      dispatch(setSelectedRole(""));
+      dispatch(setSelectedSalary(""));
+      setSearchParams({}, { replace: true });
+    }
+  }, [dispatch, setSearchParams]);
 
-            jobs = jobs.filter(job =>
-                (job.title || '').toLowerCase().includes(query) ||
-                (job.description || '').toLowerCase().includes(query) ||
-                (job.location || '').toLowerCase().includes(query) ||
-                (job.company?.name || '').toLowerCase().includes(query)
-            );
+  const filteredJobs = useMemo(() => {
+    return allJobs.filter((job) => {
+      // Search across job title, description, company, location and requirements.
+      const searchText = searchQuery.trim().toLowerCase();
+
+      const companyName =
+        typeof job.company === "object"
+          ? job.company?.name || ""
+          : job.company || "";
+
+      const requirements = Array.isArray(job.requirements)
+        ? job.requirements.join(" ")
+        : job.requirements || "";
+
+      const searchableText = [
+        job.title,
+        job.description,
+        job.location,
+        companyName,
+        requirements,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch =
+        !searchText || searchableText.includes(searchText);
+
+      // Match location.
+      const matchesLocation =
+        !selectedLocation ||
+        String(job.location || "")
+          .toLowerCase()
+          .includes(String(selectedLocation).toLowerCase());
+
+      // Match role, ignoring spaces and letter case.
+      const normalize = (value) =>
+        String(value || "")
+          .toLowerCase()
+          .replace(/[\s-]/g, "");
+
+      const matchesRole =
+        !selectedRole ||
+        normalize(job.title).includes(normalize(selectedRole));
+
+      // Match the selected salary bracket.
+      const salary = Number(job.salary);
+
+      let matchesSalary = true;
+
+      if (selectedSalary) {
+        const salaryRange = String(selectedSalary)
+          .toLowerCase()
+          .match(/(\d+)\s*-\s*(\d+)/);
+
+        const aboveRange = String(selectedSalary)
+          .toLowerCase()
+          .match(/(\d+)\s*\+/);
+
+        if (salaryRange) {
+          const min = Number(salaryRange[1]);
+          const max = Number(salaryRange[2]);
+
+          matchesSalary =
+            Number.isFinite(salary) &&
+            salary >= min &&
+            salary < max;
+        } else if (aboveRange) {
+          const min = Number(aboveRange[1]);
+
+          matchesSalary =
+            Number.isFinite(salary) && salary >= min;
         }
+      }
 
-        // Filter by location.
-        if (selectedLocation) {
-            jobs = jobs.filter(job =>
-                (job.location || '').toLowerCase().includes(
-                    selectedLocation.toLowerCase()
-                )
-            );
-        }
+      return (
+        matchesSearch &&
+        matchesLocation &&
+        matchesRole &&
+        matchesSalary
+      );
+    });
+  }, [
+    allJobs,
+    searchQuery,
+    selectedLocation,
+    selectedRole,
+    selectedSalary,
+  ]);
 
-        // Filter by job role.
-        if (selectedRole) {
-            jobs = jobs.filter(job =>
-                (job.title || '').toLowerCase().includes(
-                    selectedRole.toLowerCase()
-                )
-            );
-        }
+  const clearSearch = () => {
+    setSearchParams({}, { replace: true });
+    dispatch(setSearchedQuery(""));
+  };
 
-        // Filter by salary.
-        if (selectedSalary && salaryRanges[selectedSalary]) {
-            const [min, max] = salaryRanges[selectedSalary];
+  return (
+    <div>
+      <Navbar />
 
-            jobs = jobs.filter(job => {
-                const salary = Number(job.salary);
+      <div className="mx-auto mt-5 max-w-7xl px-4">
+        <div className="flex flex-col gap-5 md:flex-row">
+          {/* Filters */}
+          <div className="w-full md:w-1/5">
+            <FilterCard />
+          </div>
 
-                return (
-                    Number.isFinite(salary) &&
-                    salary >= min &&
-                    salary < max
-                );
-            });
-        }
+          {/* Job listings */}
+          <div className="w-full md:w-4/5">
+            {searchQuery && (
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-gray-600">
+                  Search results for:{" "}
+                  <span className="font-semibold text-gray-900">
+                    {searchQuery}
+                  </span>
+                </p>
 
-        return jobs;
-    }, [
-        allJobs,
-        searchedQuery,
-        selectedLocation,
-        selectedRole,
-        selectedSalary
-    ]);
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="rounded-md border px-3 py-1.5 text-sm hover:bg-gray-100"
+                >
+                  Clear Search
+                </button>
+              </div>
+            )}
 
-    return (
-        <div>
-            <Navbar />
-
-            <div className="max-w-7xl mx-auto mt-5 px-3">
-                <div className="flex flex-col md:flex-row gap-5">
-
-                    {/* Filters */}
-                    <div className="w-full md:w-1/5">
-                        <FilterCard />
-                    </div>
-
-                    {/* Job cards */}
-                    <div className="flex-1 h-[88vh] overflow-y-auto pb-5">
-                        {filterJobs.length === 0 ? (
-                            <div className="text-center py-10">
-                                <h2 className="text-lg font-semibold">
-                                    No Jobs Available
-                                </h2>
-
-                                <p className="text-gray-500 mt-2">
-                                    Try changing or clearing your filters.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filterJobs.map(job => (
-                                    <motion.div
-                                        key={job._id}
-                                        initial={{ opacity: 0, x: 30 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
-                                        <Job job={job} />
-                                    </motion.div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                </div>
-            </div>
+            {filteredJobs.length === 0 ? (
+              <div className="py-10 text-center">
+                <h2 className="text-lg font-semibold">
+                  No jobs found
+                </h2>
+                <p className="mt-2 text-sm text-gray-500">
+                  Try changing your search or filters.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {filteredJobs.map((job) => (
+                  <motion.div
+                    key={job._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <Job job={job} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default Jobs;
