@@ -26,6 +26,13 @@ const Jobs = () => {
         selectedRole,
         selectedSalary
     } = useSelector(store => store.job);
+    console.log("Jobs page received:", allJobs?.length);
+        console.log("Active filters:", {
+            searchedQuery,
+            selectedLocation,
+            selectedRole,
+            selectedSalary
+        });
 
     const filterJobs = useMemo(() => {
         let jobs = Array.isArray(allJobs) ? [...allJobs] : [];
