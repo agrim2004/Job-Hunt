@@ -4,7 +4,7 @@ import FilterCard from './FilterCard'
 import Job from './Job'
 import { useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
-
+import useGetAllJobs from '@/hooks/useGetAllJobs'
 const salaryRanges = {
     '0-3 LPA': [0, 3],
     '3-5 LPA': [3, 5],
@@ -15,6 +15,7 @@ const salaryRanges = {
 }
 
 const Jobs = () => {
+    useGetAllJobs();
     const {
         allJobs,
         searchedQuery,

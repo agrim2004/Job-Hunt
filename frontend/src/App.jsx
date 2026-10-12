@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 // import Navbar from './components/shared/Navbar'
 import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
@@ -37,10 +37,10 @@ const appRouter = createBrowserRouter([
     path: "/description/:id",
     element: <JobDescription />
   },
-  /*{
-    path: "/browse",
-    element: <Browse />
-  }, */
+  {
+  path: "/browse",
+  element: <Navigate to="/jobs" replace />
+  },
   {
     path: "/profile",
     element: <Profile />
