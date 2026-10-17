@@ -196,7 +196,7 @@ return (
                         <>
                             <Link to="/">Home</Link>
                             <Link to="/jobs">Jobs</Link>
-                            <Link to="/browse">Browse</Link>
+                            { /* <Link to="/browse">Browse</Link> */ }
                         </>
                     )}
 
